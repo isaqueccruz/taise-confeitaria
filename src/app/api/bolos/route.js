@@ -1,109 +1,79 @@
-import fs from "fs"
-import { writeFile, readFile, mkdir } from "fs/promises"
-import path from "path"
+import { supabase } from "@/lib/supabase"
 
-// 📁 caminhos
-const dataDir = path.join(process.cwd(), "data")
-const filePath = path.join(dataDir, "bolos.json")
-const uploadDir = path.join(process.cwd(), "public/uploads")
+// 🔍 GET
+export async function GET() {
+  const { data, error } = await supabase
+    .from("bolos")
+    .select("*")
+    .order("id", { ascending: false })
 
-// 📖 Ler bolos
-async function lerBolos(){
-  try{
-    const data = await readFile(filePath,"utf-8")
-    return JSON.parse(data)
-  }catch{
-    return []
+  if (error) {
+    console.log(error)
+    return Response.json({ error: error.message }, { status: 500 })
   }
+
+  return Response.json(data)
 }
 
-// 💾 Salvar bolos (corrigido)
-async function salvarBolos(bolos){
+// ➕ POST
+export async function POST(req) {
+  const formData = await req.formData()
 
-  // garante pasta /data
-  if(!fs.existsSync(dataDir)){
-    await mkdir(dataDir, { recursive: true })
-  }
+  const nome = formData.get("nome")
+  const preco = formData.get("preco")
+  const imagem = formData.get("imagem")
 
-  // garante arquivo bolos.json
-  if(!fs.existsSync(filePath)){
-    await writeFile(filePath, "[]")
-  }
+  let urlImagem = ""
 
-  // salva dados
-  await writeFile(filePath, JSON.stringify(bolos,null,2))
-}
-
-// 📦 GET
-export async function GET(){
-  const bolos = await lerBolos()
-
-  return new Response(JSON.stringify(bolos), {
-    headers: { "Content-Type": "application/json" }
-  })
-}
-
-// ➕ POST (adicionar bolo)
-export async function POST(req){
-
-  const data = await req.formData()
-
-  const nome = data.get("nome")
-  const preco = data.get("preco")
-  const imagem = data.get("imagem")
-
-  let bolos = await lerBolos()
-
-  let caminhoImagem = ""
-
-  // 🔥 garante pasta uploads
-  if(!fs.existsSync(uploadDir)){
-    await mkdir(uploadDir, { recursive: true })
-  }
-
-  // 🖼️ upload imagem (corrigido)
-  if(imagem && imagem.name){
+  if (imagem && imagem.size > 0) {
+    const fileName = Date.now() + "-" + imagem.name
 
     const bytes = await imagem.arrayBuffer()
-    const buffer = Buffer.from(bytes)
 
-    const nomeArquivo = Date.now() + "-" + imagem.name
+    const { error: uploadError } = await supabase.storage
+      .from("bolos")
+      .upload(fileName, bytes, {
+        contentType: imagem.type
+      })
 
-    const caminho = path.join(uploadDir, nomeArquivo)
+    if (uploadError) {
+      console.log(uploadError)
+      return Response.json({ error: uploadError.message }, { status: 500 })
+    }
 
-    await writeFile(caminho, buffer)
+    const { data: publicUrl } = supabase.storage
+      .from("bolos")
+      .getPublicUrl(fileName)
 
-    caminhoImagem = "/uploads/" + nomeArquivo
+    urlImagem = publicUrl.publicUrl
   }
 
-  const novoBolo = {
-    id: Date.now(),
-    nome,
-    preco,
-    imagem: caminhoImagem
+  const { data, error } = await supabase
+    .from("bolos")
+    .insert([{ nome, preco, imagem: urlImagem }])
+    .select()
+
+  if (error) {
+    console.log(error)
+    return Response.json({ error: error.message }, { status: 500 })
   }
 
-  bolos.push(novoBolo)
-
-  await salvarBolos(bolos)
-
-  return new Response(JSON.stringify(novoBolo), {
-    headers: { "Content-Type": "application/json" }
-  })
+  return Response.json(data[0])
 }
 
-// ❌ DELETE (remover bolo)
-export async function DELETE(req){
-
+// ❌ DELETE
+export async function DELETE(req) {
   const { id } = await req.json()
 
-  let bolos = await lerBolos()
+  const { error } = await supabase
+    .from("bolos")
+    .delete()
+    .eq("id", id)
 
-  bolos = bolos.filter(b => b.id !== id)
+  if (error) {
+    console.log(error)
+    return Response.json({ error: error.message }, { status: 500 })
+  }
 
-  await salvarBolos(bolos)
-
-  return new Response(JSON.stringify({ ok: true }), {
-    headers: { "Content-Type": "application/json" }
-  })
+  return Response.json({ success: true })
 }
