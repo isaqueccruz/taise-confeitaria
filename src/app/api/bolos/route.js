@@ -50,26 +50,25 @@ export async function POST(req){
 
   const nome = data.get("nome")
   const preco = data.get("preco")
-  const descricao = data.get("descricao") // ✅ NOVO
-  const destaque = data.get("destaque") === "true" // ✅ NOVO
   const imagem = data.get("imagem")
 
   let bolos = await lerBolos()
 
   let caminhoImagem = ""
 
-  // garante pasta uploads
+  // 🔥 garante pasta uploads
   if(!fs.existsSync(uploadDir)){
     await mkdir(uploadDir, { recursive: true })
   }
 
-  // upload imagem
+  // 🖼️ upload imagem (corrigido)
   if(imagem && imagem.name){
 
     const bytes = await imagem.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
     const nomeArquivo = Date.now() + "-" + imagem.name
+
     const caminho = path.join(uploadDir, nomeArquivo)
 
     await writeFile(caminho, buffer)
@@ -77,21 +76,11 @@ export async function POST(req){
     caminhoImagem = "/uploads/" + nomeArquivo
   }
 
-  // 🔥 remove destaque anterior
-  if (destaque) {
-    bolos = bolos.map(b => ({
-      ...b,
-      destaque: false
-    }))
-  }
-
   const novoBolo = {
     id: Date.now(),
     nome,
     preco,
-    descricao, // ✅ AGORA SALVA
-    imagem: caminhoImagem,
-    destaque // ✅ AGORA SALVA
+    imagem: caminhoImagem
   }
 
   bolos.push(novoBolo)
