@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase"
 
-// 🔍 GET
+// ✅ GET
 export async function GET() {
   const { data, error } = await supabase
     .from("bolos")
@@ -15,7 +15,7 @@ export async function GET() {
   return Response.json(data)
 }
 
-// ➕ POST
+// ✅ POST
 export async function POST(req) {
   const formData = await req.formData()
 
@@ -25,6 +25,7 @@ export async function POST(req) {
 
   let urlImagem = ""
 
+  // 🔥 Upload pro Supabase (NÃO usa fs)
   if (imagem && imagem.size > 0) {
     const fileName = Date.now() + "-" + imagem.name
 
@@ -37,7 +38,7 @@ export async function POST(req) {
       })
 
     if (uploadError) {
-      console.log(uploadError)
+      console.log("UPLOAD ERROR:", uploadError)
       return Response.json({ error: uploadError.message }, { status: 500 })
     }
 
@@ -54,14 +55,14 @@ export async function POST(req) {
     .select()
 
   if (error) {
-    console.log(error)
+    console.log("INSERT ERROR:", error)
     return Response.json({ error: error.message }, { status: 500 })
   }
 
   return Response.json(data[0])
 }
 
-// ❌ DELETE
+// ✅ DELETE
 export async function DELETE(req) {
   const { id } = await req.json()
 
@@ -71,7 +72,7 @@ export async function DELETE(req) {
     .eq("id", id)
 
   if (error) {
-    console.log(error)
+    console.log("DELETE ERROR:", error)
     return Response.json({ error: error.message }, { status: 500 })
   }
 
