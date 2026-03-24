@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase"
 
+// 🔍 GET
 export async function GET() {
   const { data, error } = await supabase
     .from("bolos")
@@ -14,6 +15,7 @@ export async function GET() {
   return Response.json(data)
 }
 
+// ➕ POST
 export async function POST(req) {
   const formData = await req.formData()
 
@@ -25,6 +27,7 @@ export async function POST(req) {
 
   if (imagem && imagem.size > 0) {
     const fileName = Date.now() + "-" + imagem.name
+
     const bytes = await imagem.arrayBuffer()
 
     const { error: uploadError } = await supabase.storage
@@ -38,11 +41,11 @@ export async function POST(req) {
       return Response.json({ error: uploadError.message }, { status: 500 })
     }
 
-    const { data } = supabase.storage
+    const { data: publicUrl } = supabase.storage
       .from("bolos")
       .getPublicUrl(fileName)
 
-    urlImagem = data.publicUrl
+    urlImagem = publicUrl.publicUrl
   }
 
   const { data, error } = await supabase
@@ -58,6 +61,7 @@ export async function POST(req) {
   return Response.json(data[0])
 }
 
+// ❌ DELETE
 export async function DELETE(req) {
   const { id } = await req.json()
 
