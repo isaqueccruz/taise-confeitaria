@@ -1,113 +1,142 @@
 "use client"
 
-import Image from "next/image"
-import { X, ShoppingCart, Plus, Minus } from "lucide-react"
 import { useState, useEffect } from "react"
 
-export default function ProductModal({ product, isOpen, onClose }) {
-  const [quantity, setQuantity] = useState(1)
+export default function ProductModal({ bolo, onClose }) {
 
-  // Resetar a quantidade toda vez que o modal abrir com um novo produto
-  useEffect(() => {
-    if (isOpen) setQuantity(1)
-  }, [isOpen, product])
+  const [tamanho, setTamanho] = useState("Pequeno (4 pedaços)")
+  const [massa, setMassa] = useState("Chocolate")
+  const [obs, setObs] = useState("")
 
-  if (!isOpen || !product) return null
+  // 🔥 trava scroll do fundo
+  useEffect(()=>{
+    document.body.style.overflow = "hidden"
+    return ()=> document.body.style.overflow = "auto"
+  },[])
 
-  // Formatação de preço para Real Brasileiro
-  const formattedPrice = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(product.price * quantity)
-
-  const handleWhatsAppOrder = () => {
-    const message = `Olá Taíse! Gostaria de encomendar:\n\n*${product.name}*\nQuantidade: ${quantity}\nTotal: ${formattedPrice}\n\nLink do produto: ${window.location.href}`
-    const encodedMessage = encodeURIComponent(message)
-    window.open(`https://wa.me/5571988461789?text=${encodedMessage}`, '_blank')
+  // 💰 preço dinâmico
+  const precos = {
+    "Pequeno (4 pedaços)": 170,
+    "Médio (8 pedaços)": 220,
+    "Grande (12 pedaços)": 300
   }
 
+  const precoFinal = precos[tamanho] || bolo.preco
+
+  // 📲 mensagem whatsapp
+  const mensagem = `
+Pedido de bolo 🍰
+
+Sabor: ${bolo.nome}
+Tamanho: ${tamanho}
+Massa: ${massa}
+Obs: ${obs}
+
+Total: R$ ${precoFinal}
+  `
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl overflow-hidden max-w-4xl w-full flex flex-col md:flex-row shadow-2xl animate-in fade-in zoom-in duration-300">
-        
-        {/* IMAGEM DO PRODUTO (Lado Esquerdo) */}
-        <div className="relative w-full md:w-1/2 h-[300px] md:h-auto bg-[#fdf2f0]">
-          <Image
-            src={product.image || "/placeholder-bolo.png"}
-            alt={product.name}
-            fill
-            className="object-cover"
-          />
-          <button 
+    <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50">
+
+      {/* CARD */}
+      <div className="bg-white w-full md:max-w-md rounded-t-2xl md:rounded-2xl overflow-hidden shadow-xl animate-slideUp">
+
+        {/* IMAGEM */}
+        <img
+          src={bolo.imagem}
+          className="w-full h-48 object-cover"
+        />
+
+        {/* CONTEÚDO */}
+        <div className="p-6 space-y-6">
+
+          {/* TÍTULO */}
+          <h2 className="text-2xl font-bold text-gray-900">
+            {bolo.nome}
+          </h2>
+
+          {/* DESCRIÇÃO */}
+          <p className="text-gray-800 text-sm leading-relaxed">
+            Bolo artesanal feito com ingredientes selecionados.
+            Escolha as opções abaixo para personalizar.
+          </p>
+
+          {/* PREÇO */}
+          <p className="font-bold text-xl text-green-600">
+            A partir de R$ {precoFinal}
+          </p>
+
+          {/* TAMANHO */}
+          <div>
+            <label className="font-semibold text-sm text-gray-800">
+              Tamanho
+            </label>
+
+            <select
+              value={tamanho}
+              onChange={(e)=>setTamanho(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-xl mt-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option>Pequeno (4 pedaços)</option>
+              <option>Médio (8 pedaços)</option>
+              <option>Grande (12 pedaços)</option>
+            </select>
+          </div>
+
+          {/* MASSA */}
+          <div>
+            <label className="font-semibold text-sm text-gray-800">
+              Massa
+            </label>
+
+            <select
+              value={massa}
+              onChange={(e)=>setMassa(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-xl mt-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option>Chocolate</option>
+              <option>Baunilha</option>
+              <option>Misto</option>
+            </select>
+          </div>
+
+          {/* PERSONALIZAÇÃO */}
+          <div>
+            <label className="font-semibold text-sm text-gray-800">
+              Personalização
+            </label>
+
+            <textarea
+              placeholder="Ex: nome, idade, frase,topo..."
+              className="w-full border border-gray-300 p-3 rounded-xl mt-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+              rows="3"
+              value={obs}
+              onChange={(e)=>setObs(e.target.value)}
+            />
+          </div>
+
+        </div>
+
+        {/* BOTÕES FIXOS */}
+        <div className="p-4 border-t flex gap-3 bg-white sticky bottom-0">
+
+          <button
             onClick={onClose}
-            className="absolute top-4 left-4 p-2 bg-white/80 backdrop-blur-md rounded-full text-[#3d2b1f] md:hidden"
+            className="flex-1 border rounded-xl py-3 text-gray-800"
           >
-            <X size={24} />
+            Fechar
           </button>
+
+          <a
+            href={`https://wa.me/5571988461789?text=${encodeURIComponent(mensagem)}`}
+            target="_blank"
+            className="flex-1 bg-green-500 text-white rounded-xl py-3 text-center font-semibold shadow-lg active:scale-95 transition"
+          >
+            Pedir
+          </a>
+
         </div>
 
-        {/* CONTEÚDO (Lado Direito) */}
-        <div className="flex-1 p-8 flex flex-col justify-between">
-          <div className="relative">
-            <button 
-              onClick={onClose}
-              className="absolute -top-2 -right-2 p-2 text-gray-400 hover:text-[#3d2b1f] hidden md:block"
-            >
-              <X size={28} />
-            </button>
-
-            <span className="text-[#d4af37] text-xs uppercase tracking-widest font-bold">
-              {product.category || "Artesanal"}
-            </span>
-            
-            <h2 className="text-3xl md:text-4xl font-serif italic text-[#3d2b1f] mt-2 leading-tight">
-              {product.name}
-            </h2>
-
-            {/* DESCRIÇÃO DINÂMICA (Corrigido: Pega do Admin) */}
-            <div className="mt-4 text-gray-600 text-sm md:text-base leading-relaxed">
-              {product.description || "Delícia artesanal feita com ingredientes selecionados e muito carinho."}
-            </div>
-
-            {/* PREÇO DINÂMICO (Corrigido: Pega do Admin) */}
-            <div className="mt-6">
-              <span className="text-2xl md:text-3xl font-bold text-[#7a8c53]">
-                {formattedPrice}
-              </span>
-            </div>
-          </div>
-
-          {/* CONTROLES E BOTÃO */}
-          <div className="mt-8 space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center border border-gray-200 rounded-full px-4 py-2">
-                <button 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="text-gray-500 hover:text-[#3d2b1f]"
-                >
-                  <Minus size={20} />
-                </button>
-                <span className="mx-6 font-bold text-[#3d2b1f] w-4 text-center">
-                  {quantity}
-                </span>
-                <button 
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="text-gray-500 hover:text-[#3d2b1f]"
-                >
-                  <Plus size={20} />
-                </button>
-              </div>
-            </div>
-
-            <button 
-              onClick={handleWhatsAppOrder}
-              className="w-full bg-[#7a8c53] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-[#687a42] transition-all shadow-lg active:scale-95"
-            >
-              <ShoppingCart size={20} />
-              Pedir no WhatsApp
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )
