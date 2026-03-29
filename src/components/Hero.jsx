@@ -1,60 +1,57 @@
-import Image from "next/image"
-
 export default function Hero() {
   return (
-    <section className="relative min-h-[650px] flex items-center overflow-hidden bg-[#4a2d1f]">
+    <section 
+      className="relative min-h-screen flex items-center overflow-hidden bg-[#4a2d1f]"
+      // 🔥 A MÁGICA ESTÁ AQUI: A IMAGEM COMO FUNDO COMPLETO 🔥
+      style={{ 
+        backgroundImage: `url('/bolos/WhatsApp Image 2026-03-28 at 19.54.53.jpeg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      
+      {/* 🖤 OVERLAY DE GRADIENTE: Essencial para garantir contraste e leitura 🖤 */}
+      {/* No Desktop: Transição da Esquerda (Preto/Marrom) para Transparente na Direita */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent lg:block hidden z-10"></div>
+      
+      {/* No Mobile: Transição do Topo (Preto/Marrom) para Transparente no Baixo */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent lg:hidden block z-10"></div>
 
-      {/* 🔥 Luz (ajustada pro mobile) */}
-      <div className="absolute right-0 top-0 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-[#7b4b32] rounded-full blur-[120px] opacity-60"></div>
-
-      {/* 🔥 Base curva (mais segura) */}
-      <div className="absolute bottom-0 w-full h-24 bg-[#f8e1e7] rounded-t-[100px]"></div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 items-center relative z-10">
+      {/* CONTAINER DO CONTEÚDO (Centralizado e Flutuando sobre a Foto) */}
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 w-full flex justify-center lg:justify-start items-center relative z-20">
         
-        {/* TEXTO */}
-        <div className="space-y-6 py-12 max-w-xl text-center lg:text-left">
+        {/* TEXTO (Centralizado no Mobile, Esquerda no Desktop) */}
+        <div className="space-y-6 py-20 max-w-xl text-center lg:text-left">
           
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-serif italic leading-tight text-white">
-            Bolos Artesanais <br />
-            <span className="font-normal">Feitos com Amor</span>
-          </h1>
-          
-          <p className="text-base sm:text-lg md:text-xl text-white/90">
-            Delícias feitas com carinho para adoçar seu dia!
-          </p>
+         
 
-          <div className="pt-4">
-            <a
-              href="https://wa.me/5571999999999"
-              className="inline-block bg-[#7a8c53] hover:bg-[#687a42] text-white px-8 sm:px-10 py-3 sm:py-4 rounded-full text-base sm:text-lg font-medium transition-all shadow-xl hover:scale-105"
-            >
-              Fazer Pedido
-            </a>
-          </div>
+          <div className="space-y-6">
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif italic leading-tight text-white drop-shadow-lg">
+              Bolos Artesanais <br />
+              <span className="font-normal text-white/90">Feitos com Amor</span>
+            </h2>
+            
+            <p className="text-base sm:text-lg md:text-xl text-white/90 max-w-lg mx-auto lg:mx-0 drop-shadow-sm">
+              Delícias feitas com carinho para adoçar seu dia!
+            </p>
 
-        </div>
-
-        {/* IMAGEM */}
-        <div className="relative flex justify-center lg:justify-end">
-          
-          <div className="relative w-full max-w-[320px] sm:max-w-[400px] md:max-w-[550px] h-[300px] sm:h-[400px] md:h-[550px]">
-
-            {/* sombra */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200px] sm:w-[300px] h-[40px] sm:h-[60px] bg-black/40 blur-2xl rounded-full"></div>
-
-            <Image
-              src="/bolos/hero-bolo-v2.png"
-              alt="Bolo de Chocolate"
-              fill
-              className="object-contain drop-shadow-[0_50px_80px_rgba(0,0,0,0.6)]"
-              priority
-            />
+            <div className="pt-6">
+              <a
+                href="https://wa.me/5571988461789"
+                className="inline-block bg-[#7a8c53] hover:bg-[#687a42] text-white px-8 sm:px-10 py-3 sm:py-4 rounded-full text-base sm:text-lg font-bold transition-all shadow-2xl hover:scale-105 active:scale-95"
+              >
+                Fazer Pedido
+              </a>
+            </div>
           </div>
 
         </div>
 
       </div>
+
+      {/* BASE CURVA BRANCA (Ajustada para o novo design imersivo) */}
+      <div className="absolute bottom-0 w-full h-16 md:h-24 bg-white rounded-t-[50px] md:rounded-t-[100px] z-30"></div>
     </section>
   )
 }

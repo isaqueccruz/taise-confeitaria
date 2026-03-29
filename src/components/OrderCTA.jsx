@@ -13,7 +13,7 @@ Peça seu bolo de forma rápida e prática pelo WhatsApp. Estamos prontos para a
 </p>
 
 <a
-href="https://wa.me/5571982210229"
+href="https://wa.me/5571988461789"
 target="_blank"
 className="inline-block mt-8 bg-green-500 hover:bg-green-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all shadow-lg hover:scale-105"
 >
