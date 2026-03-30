@@ -3,140 +3,125 @@
 import { useState, useEffect } from "react"
 
 export default function ProductModal({ bolo, onClose }) {
-
-  const [tamanho, setTamanho] = useState("Pequeno (4 pedaços)")
+  const [tamanho, setTamanho] = useState("Pequeno")
   const [massa, setMassa] = useState("Chocolate")
+  const [quantidade, setQuantidade] = useState(1)
   const [obs, setObs] = useState("")
 
-  // 🔥 trava scroll do fundo
-  useEffect(()=>{
+  useEffect(() => {
     document.body.style.overflow = "hidden"
-    return ()=> document.body.style.overflow = "auto"
-  },[])
+    return () => (document.body.style.overflow = "auto")
+  }, [])
 
-  // 💰 preço dinâmico
   const precos = {
-    "Pequeno (4 pedaços)": 170,
-    "Médio (8 pedaços)": 220,
-    "Grande (12 pedaços)": 300
+    "Pequeno": 170,
+    "Médio": 220,
+    "Grande": 300
   }
 
-  const precoFinal = precos[tamanho] || bolo.preco
+  const precoUnitario = precos[tamanho] || bolo.preco
+  const precoTotal = (precoUnitario * quantidade).toFixed(2)
 
-  // 📲 mensagem whatsapp
-  const mensagem = `
-Pedido de bolo 🍰
+  const mensagem = `*Novo Pedido de Bolo* 🍰
+---------------------------
+*Sabor:* ${bolo.nome}
+*Tamanho:* ${tamanho}
+*Massa:* ${massa}
+*Qtd:* ${quantidade}
+${obs ? `*Obs:* ${obs}` : ""}
 
-Sabor: ${bolo.nome}
-Tamanho: ${tamanho}
-Massa: ${massa}
-Obs: ${obs}
-
-Total: R$ ${precoFinal}
-  `
+*Total:* R$ ${precoTotal}
+---------------------------`
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end md:items-center justify-center z-50">
-
-      {/* CARD */}
-      <div className="bg-white w-full md:max-w-md rounded-t-2xl md:rounded-2xl overflow-hidden shadow-xl animate-slideUp">
-
-        {/* IMAGEM */}
-        <img
-          src={bolo.imagem}
-          className="w-full h-48 object-cover"
-        />
-
-        {/* CONTEÚDO */}
-        <div className="p-6 space-y-6">
-
-          {/* TÍTULO */}
-          <h2 className="text-2xl font-bold text-gray-900">
-            {bolo.nome}
-          </h2>
-
-          {/* DESCRIÇÃO */}
-          <p className="text-gray-800 text-sm leading-relaxed">
-            Bolo artesanal feito com ingredientes selecionados.
-            Escolha as opções abaixo para personalizar.
-          </p>
-
-          {/* PREÇO */}
-          <p className="font-bold text-xl text-green-600">
-            A partir de R$ {precoFinal}
-          </p>
-
-          {/* TAMANHO */}
-          <div>
-            <label className="font-semibold text-sm text-gray-800">
-              Tamanho
-            </label>
-
-            <select
-              value={tamanho}
-              onChange={(e)=>setTamanho(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-xl mt-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option>Pequeno (4 pedaços)</option>
-              <option>Médio (8 pedaços)</option>
-              <option>Grande (12 pedaços)</option>
-            </select>
-          </div>
-
-          {/* MASSA */}
-          <div>
-            <label className="font-semibold text-sm text-gray-800">
-              Massa
-            </label>
-
-            <select
-              value={massa}
-              onChange={(e)=>setMassa(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-xl mt-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option>Chocolate</option>
-              <option>Baunilha</option>
-              <option>Misto</option>
-            </select>
-          </div>
-
-          {/* PERSONALIZAÇÃO */}
-          <div>
-            <label className="font-semibold text-sm text-gray-800">
-              Personalização
-            </label>
-
-            <textarea
-              placeholder="Ex: nome, idade, frase,topo..."
-              className="w-full border border-gray-300 p-3 rounded-xl mt-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-              rows="3"
-              value={obs}
-              onChange={(e)=>setObs(e.target.value)}
-            />
-          </div>
-
+    <div className="fixed inset-0 bg-black/70 flex items-end md:items-center justify-center z-50 transition-opacity" onClick={onClose}>
+      <div 
+        className="bg-white w-full md:max-w-lg rounded-t-[32px] md:rounded-3xl overflow-hidden shadow-2xl animate-slideUp max-h-[95vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Cabeçalho com Imagem e Botão Fechar */}
+        <div className="relative h-64 w-full">
+          <img src={bolo.imagem} className="w-full h-full object-cover" alt={bolo.nome} />
+          <button onClick={onClose} className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-md text-gray-800 hover:bg-white">
+            ✕
+          </button>
         </div>
 
-        {/* BOTÕES FIXOS */}
-        <div className="p-4 border-t flex gap-3 bg-white sticky bottom-0">
+        <div className="p-6 overflow-y-auto space-y-6">
+          <div>
+            <div className="flex justify-between items-start">
+              <h2 className="text-2xl font-black text-gray-900 leading-tight">{bolo.nome}</h2>
+              <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Artesanal</span>
+            </div>
+            <p className="text-gray-500 text-sm mt-2">{bolo.descricao}</p>
+          </div>
 
-          <button
-            onClick={onClose}
-            className="flex-1 border rounded-xl py-3 text-gray-800"
-          >
-            Fechar
-          </button>
+          {/* Seleção de Tamanho (Usando Chips em vez de Select) */}
+          <div className="space-y-3">
+            <label className="text-sm font-bold text-gray-800">Escolha o tamanho:</label>
+            <div className="grid grid-cols-3 gap-2">
+              {Object.keys(precos).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTamanho(t)}
+                  className={`py-3 rounded-2xl border-2 text-sm font-semibold transition ${
+                    tamanho === t ? "border-green-500 bg-green-50 text-green-700" : "border-gray-100 text-gray-500"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Seleção de Massa */}
+          <div className="space-y-3">
+            <label className="text-sm font-bold text-gray-800">Massa:</label>
+            <div className="flex gap-2">
+              {["Chocolate", "Baunilha", "Misto"].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMassa(m)}
+                  className={`px-4 py-2 rounded-full border text-xs font-bold transition ${
+                    massa === m ? "bg-gray-800 text-white border-gray-800" : "bg-white text-gray-400 border-gray-200"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Observações */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-gray-800">Alguma observação?</label>
+            <textarea
+              placeholder="Ex: Nome do aniversariante, retirar morangos..."
+              className="w-full bg-gray-50 border-none p-4 rounded-2xl text-sm focus:ring-2 focus:ring-green-500 outline-none"
+              rows="2"
+              value={obs}
+              onChange={(e) => setObs(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Rodapé Fixo */}
+        <div className="p-6 border-t border-gray-100 flex items-center gap-4 bg-white">
+          {/* Contador de Quantidade */}
+          <div className="flex items-center border border-gray-200 rounded-xl p-1">
+            <button onClick={() => setQuantidade(Math.max(1, quantidade - 1))} className="px-3 py-2 text-xl text-gray-400 hover:text-green-600">-</button>
+            <span className="w-8 text-center font-bold text-gray-800">{quantidade}</span>
+            <button onClick={() => setQuantidade(quantidade + 1)} className="px-3 py-2 text-xl text-gray-400 hover:text-green-600">+</button>
+          </div>
 
           <a
             href={`https://wa.me/5571988461789?text=${encodeURIComponent(mensagem)}`}
             target="_blank"
-            className="flex-1 bg-green-500 text-white rounded-xl py-3 text-center font-semibold shadow-lg active:scale-95 transition"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-2xl py-4 text-center font-bold shadow-lg shadow-green-200 transition-all active:scale-95"
           >
-            Pedir
+            Pedir agora • R$ {precoTotal}
           </a>
-
         </div>
-
       </div>
     </div>
   )
