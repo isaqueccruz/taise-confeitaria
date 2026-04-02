@@ -1,126 +1,111 @@
 "use client"
 
+import Image from "next/image"
+import { X, ShoppingCart, Plus, Minus, Share2 } from "lucide-react"
 import { useState, useEffect } from "react"
 
-export default function ProductModal({ bolo, onClose }) {
-  const [tamanho, setTamanho] = useState("Pequeno")
-  const [massa, setMassa] = useState("Chocolate")
-  const [quantidade, setQuantidade] = useState(1)
-  const [obs, setObs] = useState("")
+export default function ProductModal({ product, isOpen, onClose }) {
+  const [quantity, setQuantity] = useState(1)
 
+  // Sincroniza e reseta o estado sempre que um novo produto é selecionado
   useEffect(() => {
-    document.body.style.overflow = "hidden"
-    return () => (document.body.style.overflow = "auto")
-  }, [])
+    if (isOpen) setQuantity(1)
+  }, [isOpen, product])
 
-  const precos = {
-    "Pequeno": 170,
-    "Médio": 220,
-    "Grande": 300
+  if (!isOpen || !product) return null
+
+  // Garante que o preço venha dinamicamente do Admin e calcula o total
+  const unitPrice = Number(product.price) || 0
+  const totalPrice = unitPrice * quantity
+
+  const formattedPrice = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(totalPrice)
+
+  const handleWhatsAppOrder = () => {
+    const message = `Olá Taíse! Gostaria de encomendar:\n\n*${product.name}*\nQtd: ${quantity}\nTotal: ${formattedPrice}`
+    window.open(`https://wa.me/5571988461789?text=${encodeURIComponent(message)}`, '_blank')
   }
 
-  const precoUnitario = precos[tamanho] || bolo.preco
-  const precoTotal = (precoUnitario * quantidade).toFixed(2)
-
-  const mensagem = `*Novo Pedido de Bolo* 🍰
----------------------------
-*Sabor:* ${bolo.nome}
-*Tamanho:* ${tamanho}
-*Massa:* ${massa}
-*Qtd:* ${quantidade}
-${obs ? `*Obs:* ${obs}` : ""}
-
-*Total:* R$ ${precoTotal}
----------------------------`
-
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-end md:items-center justify-center z-50 transition-opacity" onClick={onClose}>
-      <div 
-        className="bg-white w-full md:max-w-lg rounded-t-[32px] md:rounded-3xl overflow-hidden shadow-2xl animate-slideUp max-h-[95vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Cabeçalho com Imagem e Botão Fechar */}
-        <div className="relative h-64 w-full">
-          <img src={bolo.imagem} className="w-full h-full object-cover" alt={bolo.nome} />
-          <button onClick={onClose} className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-md text-gray-800 hover:bg-white">
-            ✕
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-6 bg-[#3d2b1f]/90 backdrop-blur-md transition-all">
+      <div className="bg-white w-full h-full md:h-auto md:max-w-5xl md:rounded-[40px] overflow-hidden flex flex-col md:flex-row shadow-2xl relative">
+        
+        {/* BOTÃO FECHAR (Desktop) */}
+        <button onClick={onClose} className="absolute top-6 right-6 z-50 p-2 bg-white/10 hover:bg-black/5 rounded-full transition-all hidden md:block">
+          <X size={24} className="text-[#3d2b1f]" />
+        </button>
+
+        {/* COLUNA ESQUERDA: IMAGEM (Ocupa 50% no Desktop) */}
+        <div className="w-full md:w-1/2 h-[50vh] md:h-[650px] relative bg-[#fdf2f0]">
+          <Image
+            src={product.image}
+            alt={product.name}
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Botão Voltar Mobile */}
+          <button onClick={onClose} className="absolute top-6 left-6 p-2 bg-white rounded-full md:hidden shadow-lg">
+            <X size={20} />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto space-y-6">
+        {/* COLUNA DIREITA: INFORMAÇÕES */}
+        <div className="flex-1 p-8 md:p-14 flex flex-col justify-between bg-[#fcfaf9]">
           <div>
             <div className="flex justify-between items-start">
-              <h2 className="text-2xl font-black text-gray-900 leading-tight">{bolo.nome}</h2>
-              <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Artesanal</span>
+              <span className="text-[#d4af37] text-[10px] uppercase tracking-[0.4em] font-black">
+                {product.category || "Exclusivo"}
+              </span>
+              <Share2 size={18} className="text-gray-400 cursor-pointer hover:text-[#d4af37]" />
             </div>
-            <p className="text-gray-500 text-sm mt-2">{bolo.descricao}</p>
+            
+            <h2 className="text-3xl md:text-5xl font-serif italic text-[#3d2b1f] mt-4 leading-tight">
+              {product.name}
+            </h2>
+
+            {/* DESCRIÇÃO DINÂMICA (Resolvido: Conexão com Admin) */}
+            <p className="mt-6 text-gray-600 leading-relaxed text-sm md:text-base font-light">
+              {product.description || "Descrição não informada pelo administrador."}
+            </p>
+
+            <div className="mt-8 flex items-baseline gap-2">
+              <span className="text-3xl md:text-4xl font-bold text-[#7a8c53] tracking-tighter">
+                {formattedPrice}
+              </span>
+            </div>
           </div>
 
-          {/* Seleção de Tamanho (Usando Chips em vez de Select) */}
-          <div className="space-y-3">
-            <label className="text-sm font-bold text-gray-800">Escolha o tamanho:</label>
-            <div className="grid grid-cols-3 gap-2">
-              {Object.keys(precos).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTamanho(t)}
-                  className={`py-3 rounded-2xl border-2 text-sm font-semibold transition ${
-                    tamanho === t ? "border-green-500 bg-green-50 text-green-700" : "border-gray-100 text-gray-500"
-                  }`}
+          {/* AÇÕES DE COMPRA */}
+          <div className="mt-10 space-y-4">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center bg-gray-100 rounded-2xl p-1">
+                <button 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-white rounded-xl transition-all"
                 >
-                  {t}
+                  <Minus size={16} />
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Seleção de Massa */}
-          <div className="space-y-3">
-            <label className="text-sm font-bold text-gray-800">Massa:</label>
-            <div className="flex gap-2">
-              {["Chocolate", "Baunilha", "Misto"].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMassa(m)}
-                  className={`px-4 py-2 rounded-full border text-xs font-bold transition ${
-                    massa === m ? "bg-gray-800 text-white border-gray-800" : "bg-white text-gray-400 border-gray-200"
-                  }`}
+                <span className="px-4 font-bold text-[#3d2b1f] min-w-[40px] text-center">{quantity}</span>
+                <button 
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-white rounded-xl transition-all"
                 >
-                  {m}
+                  <Plus size={16} />
                 </button>
-              ))}
+              </div>
             </div>
-          </div>
 
-          {/* Observações */}
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-800">Alguma observação?</label>
-            <textarea
-              placeholder="Ex: Nome do aniversariante, retirar morangos..."
-              className="w-full bg-gray-50 border-none p-4 rounded-2xl text-sm focus:ring-2 focus:ring-green-500 outline-none"
-              rows="2"
-              value={obs}
-              onChange={(e) => setObs(e.target.value)}
-            />
+            <button 
+              onClick={handleWhatsAppOrder}
+              className="w-full bg-[#3d2b1f] text-white py-5 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-[#2a1d15] transition-all shadow-xl active:scale-[0.98]"
+            >
+              <ShoppingCart size={20} />
+              Finalizar Pedido no WhatsApp
+            </button>
           </div>
-        </div>
-
-        {/* Rodapé Fixo */}
-        <div className="p-6 border-t border-gray-100 flex items-center gap-4 bg-white">
-          {/* Contador de Quantidade */}
-          <div className="flex items-center border border-gray-200 rounded-xl p-1">
-            <button onClick={() => setQuantidade(Math.max(1, quantidade - 1))} className="px-3 py-2 text-xl text-gray-400 hover:text-green-600">-</button>
-            <span className="w-8 text-center font-bold text-gray-800">{quantidade}</span>
-            <button onClick={() => setQuantidade(quantidade + 1)} className="px-3 py-2 text-xl text-gray-400 hover:text-green-600">+</button>
-          </div>
-
-          <a
-            href={`https://wa.me/5571988461789?text=${encodeURIComponent(mensagem)}`}
-            target="_blank"
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-2xl py-4 text-center font-bold shadow-lg shadow-green-200 transition-all active:scale-95"
-          >
-            Pedir agora • R$ {precoTotal}
-          </a>
         </div>
       </div>
     </div>
