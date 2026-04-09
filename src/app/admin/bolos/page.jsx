@@ -17,164 +17,123 @@ export default function AdminBolos() {
   useEffect(() => { carregarBolos() }, [])
 
   async function carregarBolos() {
-    const res = await fetch("/api/bolos")
-    const data = await res.json()
-    setBolos(data)
+    try {
+      const res = await fetch("/api/bolos")
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setBolos(data)
+      } else {
+        setBolos([])
+      }
+    } catch (error) {
+      console.error("Erro ao carregar:", error)
+    }
   }
 
   async function adicionarBolo() {
-    if (!nome || !preco) return alert("Preencha nome e preço!")
+    if (!nome || !preco) return alert("Preencha o nome e o preço!")
     setLoading(true)
-    const formData = new FormData()
-    formData.append("nome", nome); formData.append("descricao", descricao)
-    formData.append("preco", preco); formData.append("porcoes", porcoes)
-    formData.append("ingredientes", ingredientes); formData.append("destaque", destaque)
-    formData.append("disponivel", disponivel)
-    if (imagem) formData.append("imagem", imagem)
-
-    await fetch("/api/bolos", { method: "POST", body: formData })
     
-    setNome(""); setDescricao(""); setPreco(""); setPorcoes("")
-    setIngredientes(""); setDestaque(false); setDisponivel(true); setImagem(null)
-    setLoading(false)
-    carregarBolos()
+    try {
+      const formData = new FormData()
+      formData.append("nome", nome)
+      formData.append("preco", preco)
+      formData.append("descricao", descricao)
+      formData.append("porcoes", porcoes)
+      formData.append("ingredientes", ingredientes)
+      formData.append("destaque", destaque)
+      formData.append("disponivel", disponivel)
+      if (imagem) formData.append("imagem", imagem)
+
+      const response = await fetch("/api/bolos", {
+        method: "POST",
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Erro desconhecido")
+      }
+
+      alert("Produto salvo!")
+      setNome(""); setPreco(""); setDescricao(""); setPorcoes("")
+      setIngredientes(""); setDestaque(false); setDisponivel(true); setImagem(null)
+      carregarBolos()
+    } catch (err) {
+      alert("Erro ao salvar: " + err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    /* Ajuste Principal: 
-       md:ml-64 -> Empurra o conteúdo para a direita apenas no PC (considerando que sua sidebar tem 64px de largura).
-       No mobile (abaixo de 768px), o margin-left é zero.
-    */
-    <div className="min-h-screen bg-[#FDF8F5] md:ml-64 transition-all duration-300">
-      
-      <div className="max-w-5xl mx-auto p-4 md:p-10 space-y-8">
-        
-        <header className="py-6 border-b border-[#F3E5DC]">
-          <h1 className="text-3xl md:text-5xl font-black italic text-[#A67C74] tracking-tighter">
-            Painel Taise Sena
-          </h1>
-          <p className="text-[#826A61] font-medium mt-1">Gerencie seus bolos e encomendas</p>
+    <div className="w-full min-h-screen">
+      <div className="max-w-6xl mx-auto p-4 md:p-10">
+        <header className="mb-10">
+          <h1 className="text-3xl font-black italic text-[#A67C74]">Catálogo Taise Sena</h1>
         </header>
 
-        {/* Layout em Grid: Form à esquerda, Lista à direita no Desktop */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 items-start">
-          
-          {/* SEÇÃO: FORMULÁRIO */}
-          <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl shadow-rose-100/20 border border-[#F3E5DC] space-y-6">
-            <h2 className="text-xl font-bold text-[#3E2723]">Novo Produto</h2>
-
-            {/* Foto Upload */}
-            <div className="relative group">
-              <input type="file" id="file" hidden onChange={(e) => setImagem(e.target.files[0])} accept="image/*" />
-              <label htmlFor="file" className="flex flex-col items-center justify-center w-full h-44 bg-[#FAF3F0] border-2 border-dashed border-[#D7CCC8] rounded-[2rem] cursor-pointer hover:bg-[#F3E5DC] transition-all overflow-hidden">
-                {imagem ? (
-                  <span className="text-sm font-bold text-green-600 px-4 text-center">{imagem.name}</span>
-                ) : (
-                  <div className="text-center">
-                    <span className="text-3xl block mb-2">📸</span>
-                    <span className="text-xs font-black uppercase tracking-widest text-[#826A61]">Adicionar Foto</span>
-                  </div>
-                )}
-              </label>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {/* FORMULÁRIO */}
+          <section className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-[#F3E5DC] space-y-4 h-fit">
+            <h2 className="text-lg font-bold">Novo Bolo</h2>
+            <div className="relative group h-40 bg-[#FAF3F0] border-2 border-dashed border-[#D7CCC8] rounded-3xl flex items-center justify-center cursor-pointer overflow-hidden">
+              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => setImagem(e.target.files[0])} />
+              <span className="text-sm font-bold text-[#826A61]">
+                {imagem ? "✅ Foto Selecionada" : "📸 Adicionar Foto"}
+              </span>
             </div>
 
-            {/* Campos de Input */}
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase ml-2 text-[#826A61]">Nome do Bolo</label>
-                <input className="admin-input" value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Red Velvet" />
-              </div>
+            <input placeholder="Nome" className="admin-input" value={nome} onChange={e => setNome(e.target.value)} />
+            <div className="grid grid-cols-2 gap-4">
+              <input placeholder="Preço" type="number" className="admin-input" value={preco} onChange={e => setPreco(e.target.value)} />
+              <input placeholder="Porções" className="admin-input" value={porcoes} onChange={e => setPorcoes(e.target.value)} />
+            </div>
+            <textarea placeholder="Descrição" className="admin-input h-24 pt-3" value={descricao} onChange={e => setDescricao(e.target.value)} />
+            <input placeholder="Ingredientes" className="admin-input" value={ingredientes} onChange={e => setIngredientes(e.target.value)} />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase ml-2 text-[#826A61]">Preço (R$)</label>
-                  <input type="number" className="admin-input" value={preco} onChange={e => setPreco(e.target.value)} placeholder="0.00" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase ml-2 text-[#826A61]">Porções</label>
-                  <input className="admin-input" value={porcoes} onChange={e => setPorcoes(e.target.value)} placeholder="10 fatias" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase ml-2 text-[#826A61]">Descrição</label>
-                <textarea className="admin-input h-28 py-4 resize-none" value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Descreva o sabor..." />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase ml-2 text-[#826A61]">Ingredientes</label>
-                <input className="admin-input" value={ingredientes} onChange={e => setIngredientes(e.target.value)} placeholder="Trigo, ovos..." />
-              </div>
+            <div className="flex gap-2">
+              <button onClick={() => setDestaque(!destaque)} className={`flex-1 p-3 rounded-xl border text-xs font-bold transition ${destaque ? 'bg-[#A67C74] text-white' : 'bg-white'}`}>⭐ Destaque</button>
+              <button onClick={() => setDisponivel(!disponivel)} className={`flex-1 p-3 rounded-xl border text-xs font-bold transition ${disponivel ? 'bg-green-600 text-white' : 'bg-white'}`}>✅ Disponível</button>
             </div>
 
-            {/* Toggles (Destaque / Disponível) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button 
-                onClick={() => setDestaque(!destaque)}
-                className={`p-4 rounded-2xl border-2 flex items-center justify-between transition-all ${destaque ? 'bg-[#A67C74] border-[#A67C74] text-white shadow-lg' : 'bg-white border-[#F3E5DC] text-[#826A61]'}`}
-              >
-                <span className="text-xs font-bold italic">⭐ Destaque</span>
-                <div className={`w-4 h-4 rounded-full border-2 ${destaque ? 'bg-white border-white' : 'border-[#D7CCC8]'}`}></div>
-              </button>
-
-              <button 
-                onClick={() => setDisponivel(!disponivel)}
-                className={`p-4 rounded-2xl border-2 flex items-center justify-between transition-all ${disponivel ? 'bg-green-600 border-green-600 text-white shadow-lg' : 'bg-white border-[#F3E5DC] text-[#826A61]'}`}
-              >
-                <span className="text-xs font-bold italic">✅ Disponível</span>
-                <div className={`w-4 h-4 rounded-full border-2 ${disponivel ? 'bg-white border-white' : 'border-[#D7CCC8]'}`}></div>
-              </button>
-            </div>
-
-            <button 
-              onClick={adicionarBolo} 
-              disabled={loading} 
-              className="w-full py-5 rounded-full font-black text-white bg-[#A67C74] hover:bg-[#826A61] shadow-xl active:scale-[0.97] transition-all disabled:bg-gray-300"
-            >
-              {loading ? "PROCESSANDO..." : "CRIAR PRODUTO"}
+            <button onClick={adicionarBolo} disabled={loading} className="w-full py-4 bg-[#A67C74] text-white rounded-2xl font-black disabled:bg-gray-300">
+              {loading ? "SALVANDO..." : "SALVAR PRODUTO"}
             </button>
           </section>
 
-          {/* SEÇÃO: LISTA DE PRODUTOS */}
+          {/* LISTA */}
           <section className="space-y-4">
-            <h3 className="text-xs uppercase tracking-[0.2em] font-black text-[#A67C74] ml-2">Produtos no Catálogo ({bolos.length})</h3>
-            <div className="grid grid-cols-1 gap-4">
-              {bolos.map((bolo) => (
-                <div key={bolo.id} className="bg-white p-4 rounded-3xl border border-[#F3E5DC] flex items-center gap-4 hover:shadow-md transition-shadow">
-                  <img src={bolo.imagem} className="w-16 h-16 rounded-2xl object-cover shadow-sm" alt="" />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-[#3E2723] truncate">{bolo.nome}</h4>
-                    <p className="text-sm font-black text-[#A67C74]">R$ {bolo.preco}</p>
+            <h3 className="text-xs font-black uppercase tracking-widest text-[#A67C74]">Bolos Cadastrados ({bolos.length})</h3>
+            <div className="grid gap-3">
+              {bolos.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">Nenhum bolo encontrado.</p>
+              ) : (
+                bolos.map(b => (
+                  <div key={b.id} className="bg-white p-3 rounded-2xl border border-[#F3E5DC] flex items-center gap-4">
+                    <img src={b.imagem || "https://via.placeholder.com/50"} className="w-12 h-12 rounded-xl object-cover" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm truncate">{b.nome}</p>
+                      <p className="text-xs text-[#A67C74]">R$ {b.preco}</p>
+                    </div>
                   </div>
-                  <button onClick={() => excluirBolo(bolo.id)} className="p-3 text-red-300 hover:bg-red-50 hover:text-red-600 rounded-full transition-colors">
-                    🗑️
-                  </button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </section>
-
         </div>
       </div>
 
       <style jsx>{`
         .admin-input {
           width: 100%;
-          padding: 0 1.5rem;
-          height: 3.5rem;
+          padding: 0 1rem;
+          height: 3rem;
           background: #FAF3F0;
-          border: 1.5px solid #F3E5DC;
-          border-radius: 1.25rem;
-          outline: none;
+          border: 1px solid #F3E5DC;
+          border-radius: 1rem;
           font-size: 16px !important;
-          color: #3E2723;
-          font-weight: 500;
-          transition: all 0.2s;
-        }
-        .admin-input:focus {
-          background: white;
-          border-color: #A67C74;
-          box-shadow: 0 0 0 4px rgba(166, 124, 116, 0.1);
+          outline: none;
         }
       `}</style>
     </div>
