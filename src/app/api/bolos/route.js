@@ -1,74 +1,73 @@
 import { supabase } from "@/lib/supabase"
 
-// GET: Busca os bolos para a lista
 export async function GET() {
-  try {
-    const { data, error } = await supabase
-      .from("bolos")
-      .select("*")
-      .order("created_at", { ascending: false })
+  const { data, error } = await supabase
+    .from("bolos")
+    .select("*")
+    .order("id", { ascending: false })
 
-    if (error) throw error
-    return Response.json(data || [])
-  } catch (err) {
-    console.error("Erro GET:", err)
-    return Response.json({ error: err.message }, { status: 500 })
-  }
+  if (error) return Response.json({ error: error.message }, { status: 500 })
+  return Response.json(data)
 }
 
-// POST: Salva um novo bolo
 export async function POST(req) {
-  try {
-    const formData = await req.formData()
-    
-    // Tratamento de campos nulos e tipos de dados
-    const nome = formData.get("nome") || ""
-    const preco = parseFloat(formData.get("preco")) || 0
-    const descricao = formData.get("descricao") || ""
-    const porcoes = formData.get("porcoes") || ""
-    const ingredientes = formData.get("ingredientes") || ""
-    const destaque = formData.get("destaque") === "true"
-    const disponivel = formData.get("disponivel") === "true"
-    const imagem = formData.get("imagem")
+  const formData = await req.formData()
 
-    let urlImagem = ""
+  const nome = formData.get("nome")
+  const preco = formData.get("preco")
+  const descricao = formData.get("descricao")
+  const porcoes = formData.get("porcoes")
+  const ingredientes = formData.get("ingredientes")
+  const destaque = formData.get("destaque") === "true"
+  const disponivel = formData.get("disponivel") === "true"
+  const imagem = formData.get("imagem")
 
-    // Upload de Imagem
-    if (imagem && imagem instanceof File && imagem.size > 0) {
-      // Limpa o nome do arquivo para evitar caracteres especiais
-      const fileName = `${Date.now()}-${imagem.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("bolos")
-        .upload(fileName, imagem)
+  let urlImagem = ""
 
-      if (uploadError) throw new Error("Erro Storage: " + uploadError.message)
-      
-      const { data: publicUrl } = supabase.storage.from("bolos").getPublicUrl(fileName)
-      urlImagem = publicUrl.publicUrl
-    }
-
-    // Inserção no Banco de Dados
-    const { data, error: dbError } = await supabase
+  if (imagem && imagem.size > 0) {
+    const fileName = `${Date.now()}-${imagem.name}`
+    const bytes = await imagem.arrayBuffer()
+    const { error: uploadError } = await supabase.storage
       .from("bolos")
-      .insert([{ 
-        nome, 
-        preco, 
-        descricao, 
-        porcoes, 
-        ingredientes, 
-        destaque, 
-        disponivel, 
-        imagem: urlImagem 
-      }])
-      .select()
+      .upload(fileName, bytes, { contentType: imagem.type })
 
-    if (dbError) throw new Error("Erro Banco: " + dbError.message)
-
-    return Response.json(data[0])
-
-  } catch (err) {
-    console.error("Erro POST:", err.message)
-    return Response.json({ error: err.message }, { status: 500 })
+    if (uploadError) return Response.json({ error: uploadError.message }, { status: 500 })
+    const { data: publicUrl } = supabase.storage.from("bolos").getPublicUrl(fileName)
+    urlImagem = publicUrl.publicUrl
   }
+
+  const { data, error } = await supabase
+    .from("bolos")
+    .insert([{ 
+      nome, 
+      preco, 
+      descricao, 
+      porcoes, 
+      ingredientes, 
+      destaque, 
+      disponivel, 
+      imagem: urlImagem 
+    }])
+    .select()
+
+  if (error) return Response.json({ error: error.message }, { status: 500 })
+  return Response.json(data[0])
+}
+// Mantenha o DELETE igual
+
+// ❌ DELETE
+export async function DELETE(req) {
+  const { id } = await req.json()
+
+  const { error } = await supabase
+    .from("bolos")
+    .delete()
+    .eq("id", id)
+
+  if (error) {
+    console.log(error)
+    return Response.json({ error: error.message }, { status: 500 })
+  }
+
+  return Response.json({ success: true })
 }
