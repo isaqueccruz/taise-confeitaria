@@ -22,29 +22,56 @@ export default function AdminBolos() {
     setBolos(data)
   }
 
+  // FUNÇÃO QUE ESTAVA FALTANDO
+  async function excluirBolo(id) {
+    if (!confirm("Tem certeza que deseja remover este produto?")) return
+
+    try {
+      const res = await fetch("/api/bolos", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      })
+
+      if (res.ok) {
+        // Remove da lista local para atualizar a tela na hora
+        setBolos(bolos.filter(b => b.id !== id))
+      } else {
+        alert("Erro ao excluir o bolo do banco de dados.")
+      }
+    } catch (error) {
+      console.error("Erro na exclusão:", error)
+      alert("Erro de conexão ao tentar excluir.")
+    }
+  }
+
   async function adicionarBolo() {
     if (!nome || !preco) return alert("Preencha nome e preço!")
     setLoading(true)
     const formData = new FormData()
-    formData.append("nome", nome); formData.append("descricao", descricao)
-    formData.append("preco", preco); formData.append("porcoes", porcoes)
-    formData.append("ingredientes", ingredientes); formData.append("destaque", destaque)
+    formData.append("nome", nome)
+    formData.append("descricao", descricao)
+    formData.append("preco", preco)
+    formData.append("porcoes", porcoes)
+    formData.append("ingredientes", ingredientes)
+    formData.append("destaque", destaque)
     formData.append("disponivel", disponivel)
     if (imagem) formData.append("imagem", imagem)
 
-    await fetch("/api/bolos", { method: "POST", body: formData })
+    const res = await fetch("/api/bolos", { method: "POST", body: formData })
     
-    setNome(""); setDescricao(""); setPreco(""); setPorcoes("")
-    setIngredientes(""); setDestaque(false); setDisponivel(true); setImagem(null)
+    if (res.ok) {
+      setNome(""); setDescricao(""); setPreco(""); setPorcoes("")
+      setIngredientes(""); setDestaque(false); setDisponivel(true); setImagem(null)
+      carregarBolos()
+    } else {
+      alert("Erro ao criar o produto.")
+    }
+    
     setLoading(false)
-    carregarBolos()
   }
 
   return (
-    /* Ajuste Principal: 
-       md:ml-64 -> Empurra o conteúdo para a direita apenas no PC (considerando que sua sidebar tem 64px de largura).
-       No mobile (abaixo de 768px), o margin-left é zero.
-    */
     <div className="min-h-screen bg-[#FDF8F5] md:ml-64 transition-all duration-300">
       
       <div className="max-w-5xl mx-auto p-4 md:p-10 space-y-8">
@@ -56,14 +83,12 @@ export default function AdminBolos() {
           <p className="text-[#826A61] font-medium mt-1">Gerencie seus bolos e encomendas</p>
         </header>
 
-        {/* Layout em Grid: Form à esquerda, Lista à direita no Desktop */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 items-start">
           
           {/* SEÇÃO: FORMULÁRIO */}
           <section className="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl shadow-rose-100/20 border border-[#F3E5DC] space-y-6">
             <h2 className="text-xl font-bold text-[#3E2723]">Novo Produto</h2>
 
-            {/* Foto Upload */}
             <div className="relative group">
               <input type="file" id="file" hidden onChange={(e) => setImagem(e.target.files[0])} accept="image/*" />
               <label htmlFor="file" className="flex flex-col items-center justify-center w-full h-44 bg-[#FAF3F0] border-2 border-dashed border-[#D7CCC8] rounded-[2rem] cursor-pointer hover:bg-[#F3E5DC] transition-all overflow-hidden">
@@ -78,7 +103,6 @@ export default function AdminBolos() {
               </label>
             </div>
 
-            {/* Campos de Input */}
             <div className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase ml-2 text-[#826A61]">Nome do Bolo</label>
@@ -107,7 +131,6 @@ export default function AdminBolos() {
               </div>
             </div>
 
-            {/* Toggles (Destaque / Disponível) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button 
                 onClick={() => setDestaque(!destaque)}
