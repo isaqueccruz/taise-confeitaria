@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase"
 
-// BUSCAR BOLOS (GET) - Garante que a lista apareça
+// GET: Busca os bolos para a lista
 export async function GET() {
   try {
     const { data, error } = await supabase
@@ -11,20 +11,19 @@ export async function GET() {
     if (error) throw error
     return Response.json(data || [])
   } catch (err) {
-    console.error("Erro ao buscar:", err)
+    console.error("Erro GET:", err)
     return Response.json({ error: err.message }, { status: 500 })
   }
 }
 
-// SALVAR BOLO (POST) - Resolve o erro 500
+// POST: Salva um novo bolo
 export async function POST(req) {
   try {
     const formData = await req.formData()
     
-    // Extração segura dos campos
+    // Tratamento de campos nulos e tipos de dados
     const nome = formData.get("nome") || ""
-    const precoStr = formData.get("preco") || "0"
-    const preco = parseFloat(precoStr.replace(',', '.'))
+    const preco = parseFloat(formData.get("preco")) || 0
     const descricao = formData.get("descricao") || ""
     const porcoes = formData.get("porcoes") || ""
     const ingredientes = formData.get("ingredientes") || ""
@@ -34,20 +33,22 @@ export async function POST(req) {
 
     let urlImagem = ""
 
-    // Lógica de Upload de Imagem
+    // Upload de Imagem
     if (imagem && imagem instanceof File && imagem.size > 0) {
+      // Limpa o nome do arquivo para evitar caracteres especiais
       const fileName = `${Date.now()}-${imagem.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
+      
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("bolos")
         .upload(fileName, imagem)
 
-      if (uploadError) throw new Error("Erro no upload: " + uploadError.message)
+      if (uploadError) throw new Error("Erro Storage: " + uploadError.message)
       
       const { data: publicUrl } = supabase.storage.from("bolos").getPublicUrl(fileName)
       urlImagem = publicUrl.publicUrl
     }
 
-    // Inserção no Supabase
+    // Inserção no Banco de Dados
     const { data, error: dbError } = await supabase
       .from("bolos")
       .insert([{ 
@@ -62,11 +63,12 @@ export async function POST(req) {
       }])
       .select()
 
-    if (dbError) throw new Error("Erro no banco: " + dbError.message)
+    if (dbError) throw new Error("Erro Banco: " + dbError.message)
+
     return Response.json(data[0])
 
   } catch (err) {
-    console.error("Falha na API:", err.message)
+    console.error("Erro POST:", err.message)
     return Response.json({ error: err.message }, { status: 500 })
   }
 }
