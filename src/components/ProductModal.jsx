@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 
-// Ícones simples em SVG para reproduzir os da imagem
+// Ícones simples em SVG
 const IconUsers = () => (
   <svg className="w-6 h-6 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -29,37 +29,35 @@ const IconWhatsapp = () => (
 
 export default function ProductModal({ bolo, onClose }) {
 
-  // Trava scroll do fundo
+  // Trava scroll do fundo ao abrir o modal
   useEffect(() => {
     document.body.style.overflow = "hidden"
     return () => (document.body.style.overflow = "auto")
   }, [])
 
-  // Mensagem whatsapp baseada nas imagens
-  const mensagem = `Olá, gostaria de fazer uma encomenda do:
+  // Configuração da mensagem do WhatsApp
+  const mensagem = `Olá Taise! Gostaria de fazer uma encomenda do bolo:
 *${bolo.nome}*
-Valor: R$ ${bolo.preco}`
+Valor: R$ ${parseFloat(bolo.preco).toFixed(2).replace('.', ',')}`
 
-  // Preço formatado
+  // Formatação de preço para exibição
   const precoFormatado = parseFloat(bolo.preco).toFixed(2).replace('.', ',')
 
   return (
-    // Fundo rosado claro suave, alinhado ao topo (como no navegador das imagens)
     <div 
       className="fixed inset-0 bg-[#FDF8F5] z-50 overflow-y-auto"
       onClick={onClose}
     >
-      {/* Container Centralizado para Desktop, Full no Mobile */}
       <div 
         className="w-full max-w-2xl mx-auto bg-white min-h-screen shadow-xl"
-        onClick={(e) => e.stopPropagation()} // Impede fechar ao clicar dentro
+        onClick={(e) => e.stopPropagation()} 
       >
         
-        {/* BOTÃO VOLTAR (Fiel à imagem) */}
+        {/* BOTÃO VOLTAR */}
         <div className="p-4 pt-6">
           <button 
             onClick={onClose}
-            className="flex items-center text-[#826A61] hover:text-[#5D4B44] transition group"
+            className="flex items-center text-[#826A61] hover:text-[#5D4B44] transition group font-bold"
           >
             <svg className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -68,99 +66,104 @@ Valor: R$ ${bolo.preco}`
           </button>
         </div>
 
-        {/* IMAGEM PRINCIPAL (Com bordas arredondadas e sombra leve) */}
+        {/* IMAGEM DO BOLO */}
         <div className="px-4 md:px-8 pb-6">
           <img
-            src={bolo.imagem}
+            src={bolo.imagem || "https://via.placeholder.com/600x400?text=Bolo+Taise+Sena"}
             alt={bolo.nome}
-            className="w-full h-72 md:h-96 object-cover rounded-3xl shadow-lg"
+            className="w-full h-72 md:h-96 object-cover rounded-3xl shadow-lg border border-[#F3E5DC]"
           />
         </div>
 
-        {/* DETALHES DO PRODUTO */}
+        {/* CONTEÚDO */}
         <div className="px-6 md:px-10 pb-10 space-y-8 text-[#5D4B44]">
           
           {/* TÍTULO E PREÇO */}
           <div className="space-y-2">
-            <h1 className="text-3xl md:text-4xl font-bold text-[#3E2723] leading-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-[#3E2723] leading-tight italic">
               {bolo.nome}
-            </h1 >
-            <p className="text-3xl font-bold text-[#A67C74]">
+            </h1>
+            <p className="text-3xl font-black text-[#A67C74]">
               R$ {precoFormatado}
             </p>
           </div>
 
-          {/* DESCRIÇÃO (Texto em itálico e cor suave) */}
+          {/* DESCRIÇÃO DINÂMICA */}
           <div className="space-y-3">
-            <h2 className="text-xs uppercase tracking-widest font-bold text-[#826A61]">
+            <h2 className="text-xs uppercase tracking-widest font-black text-[#826A61]">
               Descrição
             </h2>
             <p className="text-[#6D5D55] leading-relaxed font-light italic">
-              {bolo.descricao || "Elegante bolo artesanal com acabamento refinado. Perfeito para celebrações sofisticadas e momentos inesquecíveis."}
+              {bolo.descricao || "Um clássico da nossa confeitaria, preparado com ingredientes selecionados e muito carinho para adoçar o seu momento."}
             </p>
           </div>
 
-          {/* CARTÕES DE INFORMAÇÃO (Grid fiel à imagem) */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* CARTÕES DE INFORMAÇÃO (PORÇÕES E DISPONIBILIDADE) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Porções */}
             <div className="bg-[#FAF3F0] p-5 rounded-2xl flex items-center gap-4 border border-[#F3E5DC]">
-              <IconUsers />
+              <div className="bg-white p-2 rounded-xl shadow-sm"><IconUsers /></div>
               <div>
-                <p className="text-xs text-[#826A61] font-medium">Porções</p>
-                <p className="text-lg font-bold text-[#5D4B44]">12 fatias</p>
+                <p className="text-[10px] uppercase font-black text-[#826A61]">Porções</p>
+                <p className="text-lg font-bold text-[#5D4B44]">
+                  {bolo.porcoes || "Sob consulta"}
+                </p>
               </div>
             </div>
             
             {/* Disponibilidade */}
             <div className="bg-[#FAF3F0] p-5 rounded-2xl flex items-center gap-4 border border-[#F3E5DC]">
-              <IconBag />
+              <div className="bg-white p-2 rounded-xl shadow-sm"><IconBag /></div>
               <div>
-                <p className="text-xs text-[#826A61] font-medium">Disponibilidade</p>
-                <p className="text-lg font-bold text-green-600">Disponível</p>
+                <p className="text-[10px] uppercase font-black text-[#826A61]">Status</p>
+                <p className={`text-lg font-bold ${bolo.disponivel ? 'text-green-600' : 'text-amber-600'}`}>
+                  {bolo.disponivel ? 'Disponível' : 'Sob Encomenda'}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* INGREDIENTES */}
+          {/* INGREDIENTES DINÂMICOS */}
           <div className="space-y-3 border-t border-[#F3E5DC] pt-8">
-            <h2 className="text-sm uppercase tracking-widest font-bold text-[#3E2723] flex items-center">
+            <h2 className="text-sm uppercase tracking-widest font-black text-[#3E2723] flex items-center">
               <IconLeaf />
-              Ingredientes
+              Composição
             </h2>
             <p className="text-[#6D5D55] leading-relaxed">
-              Massa amanteigada de baunilha, recheio de brigadeiro gourmet e cobertura em chantininho estabilizado.
+              {bolo.ingredientes || "Massa artesanal fofinha e recheios autorais Taise Sena Confeitaria."}
             </p>
           </div>
 
-          {/* AVISO DE ENCOMENDA (Com emoji) */}
-          <div className="bg-[#FFF8E1] border border-[#FFE082] text-[#856404] p-4 rounded-xl flex gap-3 items-start text-sm">
-            <span>🎂</span>
-            <p>
-              Todos os nossos produtos são feitos sob encomenda. Entre em contato para verificar disponibilidade e prazos.
+          {/* AVISO DE ENCOMENDA */}
+          <div className="bg-[#FFF8E1] border border-[#FFE082] text-[#856404] p-4 rounded-2xl flex gap-3 items-start text-sm shadow-sm">
+            <span className="text-xl">🎂</span>
+            <p className="font-medium">
+              Nossos bolos são artesanais! Para garantir a melhor qualidade, realize sua encomenda com antecedência mínima de 48 horas.
             </p>
           </div>
 
-          {/* BOTÕES DE AÇÃO (Fiel à imagem) */}
+          {/* BOTÕES DE AÇÃO */}
           <div className="space-y-4 pt-4">
-            {/* Botão WhatsApp Verde */}
             <a
               href={`https://wa.me/5571988461789?text=${encodeURIComponent(mensagem)}`}
               target="_blank"
-              className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-full py-4 px-6 flex items-center justify-center font-bold text-lg shadow-md transition-all active:scale-[0.98]"
+              rel="noopener noreferrer"
+              className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-full py-5 px-6 flex items-center justify-center font-black text-lg shadow-lg shadow-green-100 transition-all active:scale-[0.98]"
             >
               <IconWhatsapp />
-              Pedir pelo WhatsApp
+              PEDIR PELO WHATSAPP
             </a>
 
-            {/* Botão Secundário Transparente */}
-            <button className="w-full bg-white border-2 border-[#A67C74] text-[#A67C74] hover:bg-[#FAF3F0] rounded-full py-4 px-6 font-bold text-lg transition shadow-sm">
-              Fazer Encomenda
+            <button 
+              onClick={onClose}
+              className="w-full bg-white border-2 border-[#A67C74] text-[#A67C74] hover:bg-[#FAF3F0] rounded-full py-5 px-6 font-black text-lg transition-all"
+            >
+              CONTINUAR VENDO
             </button>
           </div>
 
         </div>
 
-        {/* Espaçador final para o scroll */}
         <div className="h-10"></div>
       </div>
     </div>
