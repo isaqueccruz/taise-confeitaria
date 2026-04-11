@@ -1,14 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-// IMPORTAÇÕES DO SWIPER
 import { Swiper, SwiperSlide } from "swiper/react"
-import { Autoplay, Pagination, Navigation } from "swiper/modules"
+import { Autoplay, Pagination } from "swiper/modules"
 
-// IMPORTAÇÕES DOS ESTILOS DO SWIPER
+// Estilos do Swiper
 import "swiper/css"
 import "swiper/css/pagination"
-import "swiper/css/navigation"
 
 import CakeCard from "./CakeCard"
 import ProductModal from "./ProductModal"
@@ -22,25 +20,25 @@ export default function BestSellers() {
       const res = await fetch("/api/bolos")
       const data = await res.json()
       
-      // FILTRO: Pega apenas os marcados como destaque
+      // Filtra apenas os destaques
       let destaques = data.filter(bolo => bolo.destaque === true)
       
-      // Fallback: Se não houver destaques, pega os 3 últimos
+      // Se não houver nenhum marcado, pega os 3 primeiros para não ficar vazio
       if (destaques.length === 0) {
         destaques = data.slice(0, 3)
       }
 
-      // --- ESTRATÉGIA DE DUPLICAÇÃO ---
-      // Se tivermos menos de 5 bolos (número seguro para o loop funcionar em todos os breakpoints),
-      // nós duplicamos a lista para garantir o giro infinito.
+      // Lógica para o Giro Infinito:
+      // Triplicamos a lista se houver poucos itens (menos de 5)
+      // Isso engana o Swiper e permite o loop infinito sem erros de "slides insuficientes"
       if (destaques.length > 0 && destaques.length < 5) {
-        setBolos([...destaques, ...destaques, ...destaques]) // Triplicamos para garantir
+        setBolos([...destaques, ...destaques, ...destaques])
       } else {
         setBolos(destaques)
       }
 
     } catch (error) {
-      console.error("Erro ao carregar destaques:", error)
+      console.error("Erro ao carregar os destaques:", error)
     }
   }
 
@@ -51,37 +49,39 @@ export default function BestSellers() {
   return (
     <section className="py-20 px-4 md:px-10 bg-[#F7E7E3]">
       <div className="max-w-7xl mx-auto">
+        
         <header className="text-center mb-16">
-          <span className="text-sm font-black uppercase tracking-widest text-[#A67C74] opacity-70">Os Mais Pedidos</span>
+          <span className="text-sm font-black uppercase tracking-widest text-[#A67C74] opacity-70">
+            Os Favoritos
+          </span>
           <h2 className="text-4xl md:text-6xl font-black italic text-[#A67C74] tracking-tighter mt-2">
             Nossos Best Sellers
           </h2>
           <div className="w-24 h-1.5 bg-[#F3E5DC] mx-auto mt-5 rounded-full"></div>
         </header>
 
-        {/* CONFIGURAÇÃO DO SWIPER (FORÇANDO O LOOP) */}
+        {/* Carrossel sem setas laterais */}
         <Swiper
           spaceBetween={30}
-          slidesPerView={1} // Mobile
-          loop={bolos.length > 1} // Ativa o loop se houver pelo menos 2 (já duplicados)
+          slidesPerView={1}
+          loop={bolos.length > 1}
           centeredSlides={true}
           autoplay={{
-            delay: 3000, // Passa mais rápido (3 segundos)
+            delay: 3000,
             disableOnInteraction: false,
           }}
           pagination={{
             clickable: true,
             dynamicBullets: true,
           }}
-          navigation={true} // Setas ativadas
-          modules={[Autoplay, Pagination, Navigation]}
+          modules={[Autoplay, Pagination]}
           breakpoints={{
-            // Tablet
+            // Quando a tela for >= 640px (Tablet)
             640: {
               slidesPerView: 2,
               centeredSlides: false,
             },
-            // Desktop
+            // Quando a tela for >= 1024px (Desktop)
             1024: {
               slidesPerView: 3,
               centeredSlides: false,
@@ -90,7 +90,7 @@ export default function BestSellers() {
           className="mySwiper pb-14"
         >
           {bolos.map((bolo, index) => (
-            // Usamos index no key porque agora temos IDs duplicados na lista
+            // Usamos o index na key pois temos itens repetidos para o loop infinito
             <SwiperSlide key={`${bolo.id}-${index}`} className="py-4">
               <CakeCard 
                 bolo={bolo}
@@ -101,7 +101,7 @@ export default function BestSellers() {
         </Swiper>
       </div>
 
-      {/* MODAL */}
+      {/* MODAL DE DETALHES */}
       {boloSelecionado && (
         <ProductModal 
           bolo={boloSelecionado}
@@ -109,18 +109,16 @@ export default function BestSellers() {
         />
       )}
 
-      {/* ESTILIZAÇÃO DAS SETAS E PONTOS */}
+      {/* Customização dos pontinhos de paginação */}
       <style jsx global>{`
-        .swiper-button-next, .swiper-button-prev {
-          color: #A67C74 !important;
-          scale: 0.6;
-          background: rgba(255,255,255,0.9);
-          padding: 25px;
-          border-radius: 100%;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        .swiper-pagination-bullet {
+          background: #D7CCC8;
+          opacity: 1;
         }
         .swiper-pagination-bullet-active {
           background-color: #A67C74 !important;
+          width: 12px;
+          border-radius: 5px;
         }
       `}</style>
     </section>
