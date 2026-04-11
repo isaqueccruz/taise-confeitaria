@@ -21,15 +21,24 @@ export default function BestSellers() {
     try {
       const res = await fetch("/api/bolos")
       const data = await res.json()
-      // FILTRO: Apenas os destaques
-      const destaques = data.filter(bolo => bolo.destaque === true)
       
-      // Fallback se não houver destaques
+      // FILTRO: Pega apenas os marcados como destaque
+      let destaques = data.filter(bolo => bolo.destaque === true)
+      
+      // Fallback: Se não houver destaques, pega os 3 últimos
       if (destaques.length === 0) {
-        setBolos(data.slice(0, 6)) // Pega mais bolos para o slider ficar bonito
+        destaques = data.slice(0, 3)
+      }
+
+      // --- ESTRATÉGIA DE DUPLICAÇÃO ---
+      // Se tivermos menos de 5 bolos (número seguro para o loop funcionar em todos os breakpoints),
+      // nós duplicamos a lista para garantir o giro infinito.
+      if (destaques.length > 0 && destaques.length < 5) {
+        setBolos([...destaques, ...destaques, ...destaques]) // Triplicamos para garantir
       } else {
         setBolos(destaques)
       }
+
     } catch (error) {
       console.error("Erro ao carregar destaques:", error)
     }
@@ -50,38 +59,39 @@ export default function BestSellers() {
           <div className="w-24 h-1.5 bg-[#F3E5DC] mx-auto mt-5 rounded-full"></div>
         </header>
 
-        {/* CONFIGURAÇÃO DO SWIPER */}
+        {/* CONFIGURAÇÃO DO SWIPER (FORÇANDO O LOOP) */}
         <Swiper
-          spaceBetween={30} // Espaço entre os cards
-          sliceview={1} // Padrão mobile: 1 card por vez
-          loop={true} // Faz o efeito de "indo e voltando" infinito
-          centeredSlides={true} // Centraliza o card ativo
+          spaceBetween={30}
+          slidesPerView={1} // Mobile
+          loop={bolos.length > 1} // Ativa o loop se houver pelo menos 2 (já duplicados)
+          centeredSlides={true}
           autoplay={{
-            delay: 3500, // Tempo que cada bolo fica na tela (3.5 segundos)
-            disableOnInteraction: false, // Não para se o usuário mexer
+            delay: 3000, // Passa mais rápido (3 segundos)
+            disableOnInteraction: false,
           }}
           pagination={{
-            clickable: true, // Pontinhos clicáveis embaixo
-            dynamicBullets: true, // Pontinhos mudam de tamanho
+            clickable: true,
+            dynamicBullets: true,
           }}
-          navigation={true} // Setinhas laterais (opcional, pode tirar se preferir limpo)
-          modules={[Autoplay, Pagination, Navigation]} // Módulos ativados
+          navigation={true} // Setas ativadas
+          modules={[Autoplay, Pagination, Navigation]}
           breakpoints={{
-            // Quando a tela for >= 640px (Tablet)
+            // Tablet
             640: {
               slidesPerView: 2,
               centeredSlides: false,
             },
-            // Quando a tela for >= 1024px (Desktop)
+            // Desktop
             1024: {
               slidesPerView: 3,
               centeredSlides: false,
             },
           }}
-          className="mySwiper pb-14" // pb-14 para dar espaço aos pontinhos
+          className="mySwiper pb-14"
         >
-          {bolos.map((bolo) => (
-            <SwiperSlide key={bolo.id} className="py-4"> {/* py-4 para não cortar a sombra do card */}
+          {bolos.map((bolo, index) => (
+            // Usamos index no key porque agora temos IDs duplicados na lista
+            <SwiperSlide key={`${bolo.id}-${index}`} className="py-4">
               <CakeCard 
                 bolo={bolo}
                 onClick={setBoloSelecionado}
@@ -99,17 +109,18 @@ export default function BestSellers() {
         />
       )}
 
-      {/* ESTILIZAÇÃO CUSTOMIZADA PARA AS SETAS E PONTOS (OPCIONAL) */}
+      {/* ESTILIZAÇÃO DAS SETAS E PONTOS */}
       <style jsx global>{`
         .swiper-button-next, .swiper-button-prev {
-          color: #A67C74 !important; /* Cor das setas marrom rosado */
-          scale: 0.7;
-          background: rgba(255,255,255,0.8);
-          padding: 30px;
+          color: #A67C74 !important;
+          scale: 0.6;
+          background: rgba(255,255,255,0.9);
+          padding: 25px;
           border-radius: 100%;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .swiper-pagination-bullet-active {
-          background-color: #A67C74 !important; /* Cor do ponto ativo */
+          background-color: #A67C74 !important;
         }
       `}</style>
     </section>
