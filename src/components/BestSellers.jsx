@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Autoplay, Pagination } from "swiper/modules"
 
-// Estilos do Swiper
 import "swiper/css"
 import "swiper/css/pagination"
 
@@ -19,24 +18,15 @@ export default function BestSellers() {
     try {
       const res = await fetch("/api/bolos")
       const data = await res.json()
-      
-      // Filtra apenas os destaques
       let destaques = data.filter(bolo => bolo.destaque === true)
       
-      // Se não houver nenhum marcado, pega os 3 primeiros para não ficar vazio
-      if (destaques.length === 0) {
-        destaques = data.slice(0, 3)
-      }
+      if (destaques.length === 0) destaques = data.slice(0, 3)
 
-      // Lógica para o Giro Infinito:
-      // Triplicamos a lista se houver poucos itens (menos de 5)
-      // Isso engana o Swiper e permite o loop infinito sem erros de "slides insuficientes"
       if (destaques.length > 0 && destaques.length < 5) {
         setBolos([...destaques, ...destaques, ...destaques])
       } else {
         setBolos(destaques)
       }
-
     } catch (error) {
       console.error("Erro ao carregar os destaques:", error)
     }
@@ -47,27 +37,27 @@ export default function BestSellers() {
   }, [])
 
   return (
-    <section className="py-20 px-4 md:px-10 bg-[#F7E7E3]">
+    <section className="py-24 px-4 md:px-10 bg-[#FAF3F0]"> {/* Fundo levemente mais claro e elegante */}
       <div className="max-w-7xl mx-auto">
         
-        <header className="text-center mb-16">
-          <span className="text-sm font-black uppercase tracking-widest text-[#A67C74] opacity-70">
-            Os Favoritos
+        <header className="text-center mb-12">
+          <span className="text-xs font-bold uppercase tracking-[0.3em] text-[#A67C74] opacity-80 mb-3 block">
+            Destaques da Semana
           </span>
-          <h2 className="text-4xl md:text-6xl font-black italic text-[#A67C74] tracking-tighter mt-2">
+          <h2 className="text-4xl md:text-5xl font-serif italic text-[#5C4033] tracking-tight">
             Nossos Best Sellers
           </h2>
-          <div className="w-24 h-1.5 bg-[#F3E5DC] mx-auto mt-5 rounded-full"></div>
+          {/* Divisor mais sutil */}
+          <div className="w-16 h-[2px] bg-[#D7CCC8] mx-auto mt-6"></div>
         </header>
 
-        {/* Carrossel sem setas laterais */}
         <Swiper
-          spaceBetween={30}
+          spaceBetween={40}
           slidesPerView={1}
           loop={bolos.length > 1}
           centeredSlides={true}
           autoplay={{
-            delay: 3000,
+            delay: 4000,
             disableOnInteraction: false,
           }}
           pagination={{
@@ -76,32 +66,24 @@ export default function BestSellers() {
           }}
           modules={[Autoplay, Pagination]}
           breakpoints={{
-            // Quando a tela for >= 640px (Tablet)
-            640: {
-              slidesPerView: 2,
-              centeredSlides: false,
-            },
-            // Quando a tela for >= 1024px (Desktop)
-            1024: {
-              slidesPerView: 3,
-              centeredSlides: false,
-            },
+            640: { slidesPerView: 2, centeredSlides: false },
+            1024: { slidesPerView: 3, centeredSlides: false },
           }}
-          className="mySwiper pb-14"
+          className="mySwiper !pb-20"
         >
           {bolos.map((bolo, index) => (
-            // Usamos o index na key pois temos itens repetidos para o loop infinito
-            <SwiperSlide key={`${bolo.id}-${index}`} className="py-4">
-              <CakeCard 
-                bolo={bolo}
-                onClick={setBoloSelecionado}
-              />
+            <SwiperSlide key={`${bolo.id}-${index}`} className="py-6">
+              <div className="transition-transform duration-300 hover:scale-[1.02]">
+                <CakeCard 
+                  bolo={bolo}
+                  onClick={setBoloSelecionado}
+                />
+              </div>
             </SwiperSlide>
           ))}
         </Swiper>
       </div>
 
-      {/* MODAL DE DETALHES */}
       {boloSelecionado && (
         <ProductModal 
           bolo={boloSelecionado}
@@ -109,16 +91,26 @@ export default function BestSellers() {
         />
       )}
 
-      {/* Customização dos pontinhos de paginação */}
+      {/* Estilos Globais Customizados */}
       <style jsx global>{`
+        /* Cor de fundo dos bullets inativos */
         .swiper-pagination-bullet {
-          background: #D7CCC8;
-          opacity: 1;
+          background: #A67C74 !important;
+          opacity: 0.3;
+          width: 8px;
+          height: 8px;
+          transition: all 0.3s ease;
         }
+        /* Estilo do bullet ativo (Pill Shape) */
         .swiper-pagination-bullet-active {
-          background-color: #A67C74 !important;
-          width: 12px;
-          border-radius: 5px;
+          opacity: 1 !important;
+          width: 24px !important;
+          border-radius: 12px !important;
+          background: #5C4033 !important;
+        }
+        /* Ajuste de posição da paginação para não colar no card */
+        .swiper-pagination {
+          bottom: 0px !important;
         }
       `}</style>
     </section>
